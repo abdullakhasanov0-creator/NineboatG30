@@ -7,7 +7,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: unzip -q g30kcq.zip -d proj
+      - name: Prepare project
+        run: |
+          Z=$(find . -iname '*.zip' | head -1)
+          if [ -n "$Z" ]; then
+            echo "Using $Z"
+            unzip -q "$Z" -d proj
+          elif [ -f settings.gradle.kts ]; then
+            mkdir proj
+            tar --exclude=./proj --exclude=./.git -cf - . | tar -xf - -C proj
+          else
+            echo "NO PROJECT FILES"; ls -R; exit 1
+          fi
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -22,4 +33,3 @@ jobs:
         with:
           name: app-debug
           path: proj/app/build/outputs/apk/debug/*.apk
-          
